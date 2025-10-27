@@ -1,14 +1,24 @@
-import React, { useState } from "react";
+// ...existing code...
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 function LoginModal({ recipe, onClose }) {
   const [provider, setProvider] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
 
   // 🔹 URL del backend (usa .env o localhost)
   // VITE_API_URL=http://localhost:3000
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+  useEffect(() => {
+    const apply = () => setIsMobile(window.innerWidth <= 640);
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, []);
 
   const openProvider = (p) => {
     setProvider(p);
@@ -42,7 +52,12 @@ function LoginModal({ recipe, onClose }) {
     }
   };
 
-  return (
+  const inputWidth = isMobile ? "100%" : "92%";
+  const btnWidth = isMobile ? "100%" : "92%";
+  const modalPadding = isMobile ? "14px 14px 18px" : "30px 25px";
+  const outerPadding = isMobile ? 12 : 0;
+
+  const modalContent = (
     <div
       className="modal"
       onClick={onClose}
@@ -54,8 +69,10 @@ function LoginModal({ recipe, onClose }) {
         background: "rgba(0,0,0,0.5)",
         display: "flex",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: isMobile ? "flex-end" : "center", // bottom sheet on mobile
         zIndex: 9999,
+        padding: outerPadding,
+        WebkitOverflowScrolling: "touch",
       }}
     >
       <div
@@ -64,13 +81,16 @@ function LoginModal({ recipe, onClose }) {
         style={{
           position: "relative",
           background: "#fff",
-          borderRadius: 16,
-          padding: "30px 25px",
-          width: "92%",
-          maxWidth: 420,
+          borderRadius: isMobile ? "12px 12px 0 0" : 16,
+          padding: modalPadding,
+          width: isMobile ? "100%" : "92%",
+          maxWidth: isMobile ? "100%" : 420,
+          maxHeight: isMobile ? "78vh" : "80vh",
+          overflowY: "auto",
           textAlign: "center",
-          boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
+          boxShadow: isMobile ? "0 -8px 30px rgba(0,0,0,0.28)" : "0 8px 25px rgba(0,0,0,0.2)",
           animation: "fadeIn 0.25s ease",
+          boxSizing: "border-box",
         }}
       >
         {/* Botón de cierre */}
@@ -93,6 +113,7 @@ function LoginModal({ recipe, onClose }) {
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
+            zIndex: 2,
           }}
         >
           ✕
@@ -135,7 +156,7 @@ function LoginModal({ recipe, onClose }) {
                   padding: "10px 12px",
                   borderRadius: 10,
                   fontWeight: 600,
-                  width: "90%",
+                  width: isMobile ? "100%" : "90%",
                   justifyContent: "center",
                   cursor: "pointer",
                 }}
@@ -160,7 +181,7 @@ function LoginModal({ recipe, onClose }) {
                   padding: "10px 12px",
                   borderRadius: 10,
                   fontWeight: 600,
-                  width: "90%",
+                  width: isMobile ? "100%" : "90%",
                   justifyContent: "center",
                   cursor: "pointer",
                 }}
@@ -259,20 +280,19 @@ function LoginModal({ recipe, onClose }) {
                 flexDirection: "column",
                 gap: 8,
                 alignItems: "center",
+                paddingBottom: isMobile ? 8 : 0,
               }}
             >
               <input
                 type="text"
                 placeholder={
-                  provider === "facebook"
-                    ? "Correo o número de teléfono"
-                    : "Correo"
+                  provider === "facebook" ? "Correo o número de teléfono" : "Correo"
                 }
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 style={{
-                  width: "92%",
+                  width: inputWidth,
                   padding: 10,
                   borderRadius: 8,
                   border: "1px solid #ddd",
@@ -285,7 +305,7 @@ function LoginModal({ recipe, onClose }) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={{
-                  width: "92%",
+                  width: inputWidth,
                   padding: 10,
                   borderRadius: 8,
                   border: "1px solid #ddd",
@@ -308,21 +328,18 @@ function LoginModal({ recipe, onClose }) {
               <button
                 type="submit"
                 style={{
-                  width: "92%",
+                  width: btnWidth,
                   padding: 10,
                   borderRadius: 8,
                   border: "none",
                   cursor: "pointer",
                   marginTop: 10,
-                  background:
-                    provider === "google" ? "#4285f4" : "#1877f2",
+                  background: provider === "google" ? "#4285f4" : "#1877f2",
                   color: "#fff",
                   fontWeight: 700,
                 }}
               >
-                {provider === "google"
-                  ? "Iniciar con Google"
-                  : "Iniciar con Facebook"}
+                {provider === "google" ? "Iniciar con Google" : "Iniciar con Facebook"}
               </button>
 
               <button
@@ -332,7 +349,7 @@ function LoginModal({ recipe, onClose }) {
                   setErrorMsg("");
                 }}
                 style={{
-                  width: "92%",
+                  width: btnWidth,
                   padding: 10,
                   borderRadius: 8,
                   border: "1px solid #ccc",
@@ -350,6 +367,10 @@ function LoginModal({ recipe, onClose }) {
       </div>
     </div>
   );
+
+  // Render via portal to avoid stacking-context issues (preserva todo lo existente)
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : null;
 }
 
 export default LoginModal;
+// ...existing code...

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RecipeCard from "../components/RecipeCard";
 import LoginModal from "../components/LoginModal";
-import Navbar from "../components/Navbar"; // 🔹 Agregada la barra superior
+import Navbar from "../components/Navbar";
 import "../index.css";
 
 const recipes = [
@@ -81,31 +81,209 @@ const recipes = [
 function Home() {
   const [showLogin, setShowLogin] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [query, setQuery] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleOpenRecipe = (recipe) => {
     setSelectedRecipe(recipe);
     setShowLogin(true);
   };
 
+  const openLogin = () => {
+    setSelectedRecipe(null);
+    setShowLogin(true);
+  };
+
+  const filtered = recipes.filter((r) =>
+    r.title.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
   return (
     <div>
       <Navbar />
-      <div className="container">
-
-
-        <header className="topbar" style={{ paddingTop: "90px" }}>
-          <div className="brand">
-
-            <p className="subtitle">
-              Recetas reales, fotos reales — cocina con confianza
-            </p>
-          </div>
+      <div
+        className="container"
+        style={{
+          paddingTop: isMobile ? 90 : 100,
+          paddingLeft: isMobile ? 12 : 28,
+          paddingRight: isMobile ? 12 : 28,
+        }}
+      >
+        {/* Texto superior */}
+        <header
+          className="topbar"
+          style={{
+            paddingTop: isMobile ? 6 : 12,
+            paddingBottom: isMobile ? 6 : 14,
+            marginBottom: 12,
+          }}
+        >
+          <p
+            className="subtitle"
+            style={{
+              margin: 0,
+              fontSize: isMobile ? 13 : 15,
+              color: "#666",
+              textAlign: isMobile ? "center" : "left",
+            }}
+          >
+            Recetas reales, fotos reales — cocina con confianza
+          </p>
         </header>
 
+        {/* Sección superior con buscador */}
+        <section
+          style={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            gap: 12,
+            alignItems: isMobile ? "stretch" : "center",
+            justifyContent: "space-between",
+            marginBottom: 16,
+          }}
+        >
+          <div style={{ textAlign: isMobile ? "center" : "left" }}>
+            <h2 style={{ margin: "0 0 6px 0", fontSize: isMobile ? 18 : 22 }}>
+              Explora recetas destacadas
+            </h2>
+            <p
+              style={{
+                margin: 0,
+                color: "#666",
+                fontSize: isMobile ? 13 : 14,
+              }}
+            >
+              Haz click en una receta para ver más (se pedirá iniciar sesión).
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              gap: 8,
+              alignItems: isMobile ? "stretch" : "center",
+              justifyContent: isMobile ? "center" : "flex-end",
+              marginTop: isMobile ? 8 : 0,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "#fff",
+                padding: "6px 8px",
+                borderRadius: 10,
+                border: "1px solid rgba(0,0,0,0.05)",
+                width: isMobile ? "100%" : 320,
+              }}
+            >
+              <input
+                aria-label="Buscar recetas"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar recetas, ej. pizza, tacos..."
+                style={{
+                  border: "none",
+                  outline: "none",
+                  padding: "8px 6px",
+                  fontSize: 14,
+                  flex: 1,
+                  background: "transparent",
+                }}
+              />
+              <button
+                style={{
+                  background: "#e4572e",
+                  color: "#fff",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  fontWeight: 700,
+                  cursor: "default",
+                }}
+              >
+                Buscar
+              </button>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: isMobile ? "center" : "flex-end",
+                gap: 8,
+                marginTop: isMobile ? 8 : 0,
+              }}
+            >
+              <button
+                onClick={openLogin}
+                aria-label="Explorar"
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  background: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                🔎
+              </button>
+
+              <button
+                onClick={openLogin}
+                aria-label="Favoritos"
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  background: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                ❤️
+              </button>
+
+              <button
+                onClick={openLogin}
+                aria-label="Entrar"
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#222",
+                  color: "#fff",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Entrar
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Grilla de recetas */}
         <main>
           <section className="recipes-section">
-            <div className="recipes-grid">
-              {recipes.map((r) => (
+            <div
+              className="recipes-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile
+                  ? "1fr"
+                  : "repeat(auto-fill, minmax(250px, 1fr))",
+                gap: isMobile ? 12 : 20,
+              }}
+            >
+              {filtered.map((r) => (
                 <RecipeCard
                   key={r.id}
                   recipe={r}
@@ -113,7 +291,6 @@ function Home() {
                 />
               ))}
 
-              {/* Card "Ver más" como si fuera receta; también pide inicio de sesión */}
               <article
                 className="recipe-card"
                 onClick={() =>
@@ -126,34 +303,29 @@ function Home() {
                     handleOpenRecipe({ id: "more", title: "Más recetas" });
                 }}
                 aria-label="Ver más recetas"
+                style={{
+                  minHeight: 220,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  background: "linear-gradient(180deg, #fff8f6, #fff)",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                }}
               >
-                <div
-                  className="image-wrap"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: 180,
-                    background: "linear-gradient(180deg, #fff8f6, #fff)",
-                  }}
-                >
-                  <div style={{ textAlign: "center", padding: 12 }}>
-                    <div
-                      style={{
-                        fontSize: 34,
-                        color: "#e4572e",
-                        fontWeight: 800,
-                      }}
-                    >
-                      ＋
-                    </div>
-                    <h3 style={{ margin: "8px 0 4px", color: "#e4572e" }}>
-                      Ver más
-                    </h3>
-                    <p style={{ margin: 0, color: "#777", fontSize: 14 }}>
-                      Explora más recetas
-                    </p>
+                <div style={{ textAlign: "center", padding: 12 }}>
+                  <div
+                    style={{ fontSize: 34, color: "#e4572e", fontWeight: 800 }}
+                  >
+                    ＋
                   </div>
+                  <h3 style={{ margin: "8px 0 4px", color: "#e4572e" }}>
+                    Ver más
+                  </h3>
+                  <p style={{ margin: 0, color: "#777", fontSize: 14 }}>
+                    Explora más recetas
+                  </p>
                 </div>
               </article>
             </div>
