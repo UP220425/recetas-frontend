@@ -11,7 +11,7 @@ function LoginModal({ recipe, onClose }) {
 
   // 🔹 URL del backend (usa .env o localhost)
   // VITE_API_URL=http://localhost:3000
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const API_URL = import.meta.env.VITE_API_URL || "https://recetas-backend-r63l.onrender.com";
 
   useEffect(() => {
     const apply = () => setIsMobile(window.innerWidth <= 640);
